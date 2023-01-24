@@ -45,6 +45,7 @@ def get_ec2_list_in_subnet(subnet_id):
 
 for peer in peerings_list['VpcPeeringConnections']:
     peer_tmp = {}
+    print(peer['VpcPeeringConnectionId'])
     peer_tmp['name']=get_tag_value(peer,'Name')
     peer_tmp['acc_vpc'] = peer['AccepterVpcInfo']['OwnerId'] +'/'+peer['AccepterVpcInfo']['Region'] +'/'+peer['AccepterVpcInfo']['VpcId'] +'/'+peer_tmp['name']
     peer_tmp['acc_vpc_id'] = peer['AccepterVpcInfo']['VpcId']
@@ -57,6 +58,8 @@ for peer in peerings_list['VpcPeeringConnections']:
 
 
 def get_remote_peering_vpc(peering_id,local_vpc):
+    if peering_id not in peerings:
+        return "BlackHole"
     if peerings[peering_id]['acc_vpc_id'] == local_vpc:
         return peerings[peering_id]['req_vpc']
     else:
@@ -124,6 +127,7 @@ for vpc in vpcs['Vpcs']:
 
     for subnet in subnets['Subnets']:
         subnet_route = get_route_table(subnet['SubnetId'])
+        #pp.pprint(subnet_route)
         for i in range(len(subnet_route['Peerings'])):
             subnet_route['Peerings'][i] = subnet_route['Peerings'][i] +  "("+get_remote_peering_vpc(subnet_route['Peerings'][i],vpc['VpcId'])+")"
 
@@ -142,5 +146,5 @@ for vpc in vpcs['Vpcs']:
         )
 
 
-        for inst in get_ec2_list_in_subnet(subnet['SubnetId']):
-            print('EC2,'+vpc['VpcId']+','+subnet['SubnetId']+','+ get_tag_value(inst,'Name'))
+        # for inst in get_ec2_list_in_subnet(subnet['SubnetId']):
+        #     print('EC2,'+vpc['VpcId']+','+subnet['SubnetId']+','+ get_tag_value(inst,'Name'))
